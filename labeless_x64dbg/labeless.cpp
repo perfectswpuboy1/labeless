@@ -1203,7 +1203,7 @@ bool Labeless::onCommandReceived(ClientData& cd)
 
 		if (!onCommandReceived(request.script, request.scriptExternObj, resultObj))
 		{
-			log_r("An error occurred");
+			log_r("An error occured");
 			response.set_error("An error occurred");
 		}
 		response.set_std_out(cd.stdOut.str());
@@ -1233,7 +1233,7 @@ bool Labeless::onCommandReceived(ClientData& cd)
 	}
 	catch (...)
 	{
-		log_r("exception occurred");
+		log_r("exception occured");
 
 		response.set_error("Labeless::onCommandReceived() thrown an exception");
 		response.set_std_out(cd.stdOut.str());

@@ -76,7 +76,7 @@ def make_names(names, base, remote_base):
     for n in names:
         if not is_valid_addr(n.ea + ptrdiff):
             continue
-        api.Label_Set(n.ea + ptrdiff, n.name.encode('utf8'))
+        api.Label_Set(n.ea + ptrdiff, str(n.name))
 
     api.GuiUpdateAllViews()
 
@@ -88,7 +88,7 @@ def make_comments(comments, base, remote_base):
     for cmt in comments:
         if not is_valid_addr(cmt.ea + ptrdiff):
             continue
-        api.Comment_Set(cmt.ea + ptrdiff, cmt.name.encode('utf8'), False)
+        api.Comment_Set(cmt.ea + ptrdiff, str(cmt.name), False)
 
     api.GuiUpdateAllViews()
 

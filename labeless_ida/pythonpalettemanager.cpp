@@ -51,7 +51,7 @@ bool toVariant(const PythonPalette& palette, QVariant& result)
 	for (auto it = palette.palette.constBegin(), end = palette.palette.constEnd(); it != end; ++it)
 	{
 		QVariantMap vmItem;
-		vmItem[kPaletteColor] = it.value().color;
+		vmItem[kPaletteColor] = it.value().color.name();
 		vmItem[kPaletteModifiers] = it.value().modifiers;
 
 		vm[QString::number(it.key())] = vmItem;
@@ -71,35 +71,24 @@ bool fromVariant(const QVariant& vPalette, PythonPalette& result)
 	if (vPalette.isNull() || !vPalette.isValid())
 		return false;
 
-	static const QStringList kPaletteFields = QStringList() << kPalette;
 	const QVariantMap vmPalette = vPalette.toMap();
-	if (!checkFieldsExists(vmPalette, kPaletteFields))
+	if (!checkFieldsExists(vmPalette, QStringList() << kPalette))
 		return false;
 
 	const QVariantMap vm = vmPalette[kPalette].toMap();
 	static const QList<PythonPaletteEntryType> kValidEntryTypes = QList<PythonPaletteEntryType>() <<
 		PPET_Keyword << PPET_Operator << PPET_Reserved << PPET_Brace << PPET_Defclass << PPET_String <<
-		PPET_String2 << PPET_Comment << PPET_Self << PPET_Number << PPET_Highlight;
-	static const QStringList kSpecFields = QStringList() << kPaletteColor << kPaletteModifiers;
+		PPET_String2 << PPET_Comment << PPET_Self << PPET_Number;
 
 	foreach(auto type, kValidEntryTypes)
 	{
 		const auto name = QString::number(type);
-		if (vm.contains(name) && checkFieldsExists(vm[name].toMap(), kSpecFields));
+		if (vm.contains(name) && checkFieldsExists(vm[name].toMap(), QStringList() << kPaletteColor << kPaletteModifiers))
 		{
 			const auto vmSpec = vm[name].toMap();
-			const QVariant& vCol = vmSpec[kPaletteColor];
-			if (!vCol.isValid() || vCol.isNull())
-				continue;
-			QString sCol = vCol.toString();
-			FormatSpec spec;
-			if (vCol.canConvert<QColor>())
-				spec.color = vmSpec[kPaletteColor].value<QColor>();
-			else
-				spec.color = QColor(vmSpec[kPaletteColor].toString());
 
-			if (!spec.color.isValid())
-				continue;
+			FormatSpec spec;
+			spec.color = QColor(vmSpec[kPaletteColor].toString());
 			spec.modifiers = static_cast<FormatSpec::Modifiers>(vmSpec[kPaletteModifiers].toInt());
 			result.palette[type] = spec;
 		}
@@ -143,10 +132,9 @@ PythonPalette PythonPaletteManager::getDefaultLightPalette()
 		{ { QColor(Qt::black),		FormatSpec::MOD_Bold },		PPET_Defclass },
 		{ { QColor("#009800"),		FormatSpec::MOD_Normal },	PPET_String },
 		{ { QColor("#009800"),		FormatSpec::MOD_Normal },	PPET_String2 },
-		{ { QColor(128, 128, 128, 200),	FormatSpec::MOD_Italic },	PPET_Comment },
+		{ { QColor("#808080"),		FormatSpec::MOD_Italic },	PPET_Comment },
 		{ { QColor("#94558d"),		FormatSpec::MOD_Normal },	PPET_Self },
-		{ { QColor("#0000ff"),		FormatSpec::MOD_Normal },	PPET_Number },
-		{ { QColor(179, 119, 214, 70), FormatSpec::MOD_Normal }, PPET_Highlight },
+		{ { QColor("#0000ff"),		FormatSpec::MOD_Normal },	PPET_Number }
 	};
 
 	static PythonPalette defaultPalette;
@@ -180,10 +168,9 @@ PythonPalette PythonPaletteManager::getDefaultDarkPalette()
 		{ { QColor("#a9b7c6"), FormatSpec::MOD_Bold }, PPET_Defclass },
 		{ { QColor("#a5c261"), FormatSpec::MOD_Normal }, PPET_String },
 		{ { QColor("#a5c261"), FormatSpec::MOD_Normal }, PPET_String2 },
-		{ { QColor(128, 128, 128, 200), FormatSpec::MOD_Italic }, PPET_Comment },
+		{ { QColor(Qt::darkGreen), FormatSpec::MOD_Italic }, PPET_Comment },
 		{ { QColor("#94558d"), FormatSpec::MOD_Normal }, PPET_Self },
-		{ { QColor("#6897bb"), FormatSpec::MOD_Normal }, PPET_Number },
-		{ { QColor(250, 221, 255, 50), FormatSpec::MOD_Normal }, PPET_Highlight },
+		{ { QColor("#6897bb"), FormatSpec::MOD_Normal }, PPET_Number }
 	};
 	
 	static PythonPalette defaultPalette;
@@ -203,9 +190,8 @@ PythonPalette PythonPaletteManager::getDefaultDarkPalette()
 }
 
 PythonPaletteManager::PythonPaletteManager()
-	: m_Specs(&m_SpecsLight)
 {
-	m_SpecsLight = getDefaultLightPalette();
+	m_SpecsLight = m_Specs = getDefaultLightPalette();
 	m_SpecsDark = getDefaultDarkPalette();
 	loadSettings();
 }
@@ -218,12 +204,12 @@ PythonPaletteManager& PythonPaletteManager::instance()
 
 QTextCharFormat PythonPaletteManager::getTextCharFormat(PythonPaletteEntryType t) const
 {
-	return ::getTextCharFormat(t, *m_Specs);
+	return ::getTextCharFormat(t, m_Specs);
 }
 
 void PythonPaletteManager::switchScheme(bool isDark)
 {
-	m_Specs = isDark ? &m_SpecsDark : &m_SpecsLight;
+	m_Specs = isDark ? m_SpecsDark : m_SpecsLight;
 }
 
 void PythonPaletteManager::storeSettings()
@@ -259,5 +245,5 @@ void PythonPaletteManager::loadSettings()
 	PythonPalette dark = getDefaultDarkPalette();
 	if (fromVariant(vDark, dark))
 		m_SpecsDark = dark;
-	m_Specs = scheme == kColorSchemeLight ? &m_SpecsLight : &m_SpecsDark;
+	m_Specs = scheme == kColorSchemeLight ? m_SpecsLight : m_SpecsDark;
 }

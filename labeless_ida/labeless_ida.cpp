@@ -2437,7 +2437,7 @@ void Labeless::onJumpFromFinished()
 	}
 
 	const ea_t ea = static_cast<ea_t>(jtf->va);
-	if (compat::is_enabled(ea))
+	if (compat::get_flags(ea))
 		::jumpto(ea);
 	else
 		msg("%s: JUMP to <dbg> ea -> in IDA cannot find given address\n", __FUNCTION__);
@@ -2905,7 +2905,7 @@ hook_cb_t_ret_type_t Labeless::idp_callback(void* /*user_data*/, int notificatio
 	case PROCESSOR_T_NEWFILE:
 	case PROCESSOR_T_OLDFILE:
 		do {
-			const bool compat = ph.id == PLFM_386 && (inf.filetype == f_PE || inf.filetype == f_BIN);
+			const bool compat = ph.id == PLFM_386 && inf.filetype == f_PE;
 			if (compat)
 			{
 				ll.setEnabled();

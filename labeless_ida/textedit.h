@@ -50,8 +50,6 @@ private slots:
 	void onAutoCompletionRequested();
 	void updateLineNumberAreaWidth(int newBlockCount);
 	void updateLineNumberArea(const QRect&, int);
-	void highlightAllWords(const QString& what = QString());
-	void onCursorPositionChanged();
 
 protected:
 	void focusInEvent(QFocusEvent* e) override;

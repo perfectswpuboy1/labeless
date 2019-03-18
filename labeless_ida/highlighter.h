@@ -28,7 +28,6 @@ public:
 
 	bool asHtml(QString& result);
 	void setPalette(const PythonPalette& p);
-	inline const PythonPalette& palette() const { return *m_Palette; }
 
 public slots:
 	void updatePalette(bool invalidate = false);

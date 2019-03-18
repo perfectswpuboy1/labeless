@@ -42,8 +42,6 @@ struct PausedInfo
 #include <poppack.h>
 
 bool broadcastPaused(const PausedInfo& info, const GUID& instanceId);
-std::deque<xstring> getNetworkInterfacess();
-bool copyToClipboard(HWND h, const xstring& data);
 
 inline xstring to_xstr(const char* v)
 {
